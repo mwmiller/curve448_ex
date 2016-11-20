@@ -3,7 +3,7 @@ defmodule Curve448.Mixfile do
 
   def project do
     [app: :curve448,
-     version: "0.1.1",
+     version: "0.1.2",
      elixir: "~> 1.3",
      name: "Curve448",
      source_url: "https://github.com/mwmiller/curve448_ex",
@@ -21,7 +21,7 @@ defmodule Curve448.Mixfile do
   defp deps do
     [
       {:earmark, "~> 1.0", only: :dev},
-      {:ex_doc, "~> 0.12", only: :dev},
+      {:ex_doc, "~> 0.14", only: :dev},
     ]
   end
 
