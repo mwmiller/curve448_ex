@@ -23,7 +23,10 @@ defmodule Curve448 do
   defp expmod(_b,0,_m), do: 1
   defp expmod(b,e,m) do
        t = b |> expmod(div(e,2), m) |> square |> rem(m)
-       if (e &&& 1) == 1, do: (t * b) |> rem(m), else: t
+       case (e &&& 1) do
+         1 -> (t * b) |> rem(m)
+         _ -> t
+       end
   end
 
   defp inv(x), do: x|> expmod(@p - 2, @p)
@@ -49,7 +52,10 @@ defmodule Curve448 do
   defp nth_mult(1, basepair), do: basepair
   defp nth_mult(n, {one,two}) do
      {pm, pm1} = n |> div(2) |> nth_mult({one,two})
-     if (n &&& 1) == 1, do: { add(pm, pm1, one), double(pm1) }, else: { double(pm), add(pm, pm1, one) }
+     case (n &&& 1) do
+       1 -> { add(pm, pm1, one), double(pm1) }
+       _ -> { double(pm), add(pm, pm1, one) }
+     end
   end
 
   @doc """
