@@ -10,8 +10,8 @@ defmodule Curve448 do
   """
   @type key :: <<_:: 224>>
 
-  @p 726838724295606890549323807888004534353641360687318060281490199180612328166730772686396383698676545930088884461843637361053498018365439
-  @a 156326
+  @p 726_838_724_295_606_890_549_323_807_888_004_534_353_641_360_687_318_060_281_490_199_180_612_328_166_730_772_686_396_383_698_676_545_930_088_884_461_843_637_361_053_498_018_365_439
+  @a 156_326
 
   defp clamp(c) do
     c |> band(~~~3)
@@ -20,41 +20,41 @@ defmodule Curve448 do
 
   defp square(x), do: x * x # :math.pow yields floats.. and we only need this one
 
-  defp expmod(_b,0,_m), do: 1
-  defp expmod(b,e,m) do
-       t = b |> expmod(div(e,2), m) |> square |> rem(m)
+  defp expmod(_b, 0, _m), do: 1
+  defp expmod(b, e, m) do
+       t = b |> expmod(div(e, 2), m) |> square |> rem(m)
        case (e &&& 1) do
-         1 -> (t * b) |> rem(m)
+         1 -> rem(t * b, m)
          _ -> t
        end
   end
 
-  defp inv(x), do: x|> expmod(@p - 2, @p)
+  defp inv(x), do: x |> expmod(@p - 2, @p)
 
-  defp add({xn,zn}, {xm,zm}, {xd,zd}) do
+  defp add({xn, zn}, {xm, zm}, {xd, zd}) do
        x = (xm * xn - zm * zn) |> square |> (&(&1 * 4 * zd)).()
        z = (xm * zn - zm * xn) |> square |> (&(&1 * 4 * xd)).()
-       {rem(x,@p), rem(z,@p)}
+       {rem(x, @p), rem(z, @p)}
   end
-  defp double({xn,zn}) do
+  defp double({xn, zn}) do
        x = (square(xn) - square(zn)) |> square
        z = 4 * xn * zn * (square(xn) + @a * xn * zn + square(zn))
-      {rem(x,@p),  rem(z,@p)}
+      {rem(x, @p),  rem(z, @p)}
   end
 
   def curve448(n, base) do
-    one = {base,1}
+    one = {base, 1}
     two = double(one)
-    {{x,z}, _} = nth_mult(n, {one,two})
-    (x * inv(z)) |> rem(@p)
+    {{x, z}, _} = nth_mult(n, {one, two})
+    rem(x * inv(z), @p)
   end
 
   defp nth_mult(1, basepair), do: basepair
-  defp nth_mult(n, {one,two}) do
-     {pm, pm1} = n |> div(2) |> nth_mult({one,two})
+  defp nth_mult(n, {one, two}) do
+     {pm, pm1} = n |> div(2) |> nth_mult({one, two})
      case (n &&& 1) do
-       1 -> { add(pm, pm1, one), double(pm1) }
-       _ -> { double(pm), add(pm, pm1, one) }
+       1 -> {add(pm, pm1, one), double(pm1)}
+       _ -> {double(pm), add(pm, pm1, one)}
      end
   end
 
@@ -63,7 +63,7 @@ defmodule Curve448 do
 
   Returned tuple contains `{random_secret_key, derived_public_key}`
   """
-  @spec generate_key_pair :: {key,key}
+  @spec generate_key_pair :: {key, key}
   def generate_key_pair do
     secret = :crypto.strong_rand_bytes(56) # This algorithm is supposed to be resilient against poor RNG, but use the best we can
     {secret, derive_public_key(secret)}
@@ -75,7 +75,7 @@ defmodule Curve448 do
   Given our secret key and our partner's public key, returns a
   shared secret which can be derived by the partner in a complementary way.
   """
-  @spec derive_shared_secret(key,key) :: key | :error
+  @spec derive_shared_secret(key, key) :: key | :error
   def derive_shared_secret(our_secret, their_public) when byte_size(our_secret) == 56 and byte_size(their_public) == 56 do
     our_secret |> :binary.decode_unsigned(:little)
                |> clamp
