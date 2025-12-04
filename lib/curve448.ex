@@ -15,7 +15,7 @@ defmodule Curve448 do
 
   defp clamp(c) do
     c
-    |> band(~~~3)
+    |> band(bnot(3))
     |> bor(128 <<< (8 * 55))
   end
 
